@@ -236,7 +236,7 @@ if __name__ == "__main__":
     app.hard_code_data()
 
     
-    login_user = app.validate_user("mohan@gmail.com", "mohan123")
+    login_user = app.validate_user("anand@gmail.com", "anand123")
     if login_user:
         print("Login Success\n")
         
