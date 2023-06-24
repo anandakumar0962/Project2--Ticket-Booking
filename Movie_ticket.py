@@ -169,7 +169,7 @@ class Ticket_booking(Users):
                                 print("1. Card")
                                 print("2. UPI")
                                 payment_choice = int(input("Choose a payment option: "))
-                                if payment_choice != 1 or payment_choice != 2:
+                                if payment_choice != 1 and payment_choice != 2:
                                     print("Invalid Payment method")
                                 else:
                                     if payment_choice == 1:
