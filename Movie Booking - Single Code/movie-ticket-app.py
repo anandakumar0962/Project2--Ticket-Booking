@@ -11,13 +11,13 @@ class UsersData:
         self.password = password
 
 # User Functionality Class
-class UserFunctionality:
+class UserFunctionality():
     # Method Overloading based on the type and number of parameters.
     def validate_user(self, mail_id, password=None):
         # Validate user based on mail_id and password
         registered_mail_id = [user.mail_id for user in UsersData.users if user.mail_id == mail_id]
 
-        if not registered_mail_id and password == None:
+        if registered_mail_id==[] and password==None:
             # If mail_id is not registered and no password provided, return True
             return True
         else:
@@ -87,7 +87,7 @@ class TheatresData:
         self.show_time = show_time
 
 # Theatre Functionality Class
-class TheatreFunctionality:
+class TheatreFunctionality():
     def display_info(self, movie):
         # Display information about available theatres showing a specific movie
         print("--------------------------------------------------------\n")
@@ -107,7 +107,7 @@ class TheatreFunctionality:
         print("--------------------------------------------------------\n")
         for theatre in TheatresData.theatres:
             if theatre.theatre_name == selected_theatre:
-                [print(key, value) for key, value in theatre.show_time.items()]
+                [print(show_id, show_time) for show_id, show_time in theatre.show_time.items()]
         return [theatre.show_time for theatre in TheatresData.theatres if theatre.theatre_name == selected_theatre]
 
     def select_showtime(self, selected_theatre):
@@ -116,14 +116,16 @@ class TheatreFunctionality:
         show_id = int(input("\nEnter the Show_id:\n"))
         print("--------------------------------------------------------\n")
         if show_id > 0 and show_id <= 4: 
-            return show_time[0][show_id]
+            return show_time[0][show_id]  
+        
 
 # Seats Data Class
 class SeatsData:
     seats_datas = []
-    def __init__(self, theatre_name, show_time):
+    def __init__(self, theatre_name, movie, show_time):
         # Constructor for initializing seat data
         self.theatre_name = theatre_name
+        self.movie = movie
         self.show_time = show_time
         self.seats = [["A1", "A2", "A3", "A4", "A5"], 
                       ["B1", "B2", "B3", "B4", "B5"], 
@@ -132,27 +134,28 @@ class SeatsData:
 
 # Seat Functionality Class
 class SeatFunctionality:
-    def display_seats(self, theatre_name, show_time):
+    def display_seats(self, theatre_name, movie, show_time):
         # Display available seats for a selected theatre and showtime
-        required_seats = [seat_details.seats for seat_details in SeatsData.seats_datas if seat_details.theatre_name == theatre_name and seat_details.show_time == show_time]
+        required_seats = [seat_details.seats for seat_details in SeatsData.seats_datas if seat_details.theatre_name == theatre_name and seat_details.movie == movie and seat_details.show_time == show_time]
         if required_seats == []:
-            new_seats = SeatsData(theatre_name, show_time)
+            new_seats = SeatsData(theatre_name, movie, show_time)
             SeatsData.seats_datas.append(new_seats)
-            self.display_seats(theatre_name, show_time)
+            self.display_seats(theatre_name, movie, show_time)
 
         else:
-            for seat_deatils in SeatsData.seats_datas:
-                if seat_deatils.theatre_name == theatre_name and seat_deatils.show_time == show_time:
-                    for rows in seat_deatils.seats:
+            for seat_details in SeatsData.seats_datas:
+                if seat_details.theatre_name == theatre_name and seat_details.movie == movie and seat_details.show_time == show_time:
+                    for rows in seat_details.seats:
                         print(*rows)
+
     
-    def select_seats(self, theatre_name, show_time):
+    def select_seats(self, theatre_name, movie, show_time):
         # Select seats based on user input
-        self.display_seats(theatre_name, show_time)
-        required_seats = [seat_details.seats for seat_details in SeatsData.seats_datas if seat_details.theatre_name == theatre_name and seat_details.show_time == show_time]            
+        self.display_seats(theatre_name, movie, show_time)
+        required_seats = [seat_details.seats for seat_details in SeatsData.seats_datas if seat_details.theatre_name == theatre_name and seat_details.movie == movie and seat_details.show_time == show_time]            
         requested_seats = input("\nEnter the seats as space separated to select:(Ex. A1 A2 B2)\n").upper().split(' ')
         selected_seats = []
-        for rows in required_seats[0]:
+        for rows in required_seats[0]:                               
             for seat in rows:
                 if seat in requested_seats:
                     selected_seats.append(seat)
@@ -161,8 +164,6 @@ class SeatFunctionality:
             for rows in required_seats[0]:
                 for i in range(len(rows)):
                     if rows[i] in selected_seats:
-
-
                         rows[i] = '0 '
             return selected_seats
 
@@ -225,20 +226,20 @@ class BookingFunctionality:
         if len(BookingsData.bookings) == 0:
             print("Booking history is empty.")
         else:
-            del(BookingsData.bookings[-1])
+            BookingsData.bookings.pop()
             print("Your last history has been deleted")
-            choice = input("\nDo you clear your all history? (y/n):\n")
+            choice = input("\nDo you want to clear your all history? (y - to clear):\n")
             if choice.lower() ==  'y':
                 BookingsData.bookings.clear()
                 print("Booking history deleted successfully")
             else:
-                print("Invalid input.")
+                print("Thank you")
 
 # Movie Booking System Class
-class MovieBookingSystem:
+class MovieBookingSystem(UserFunctionality):
+
     def __init__(self):
         # Constructor for initializing Movie Booking System
-        self.user = UserFunctionality()
         self.movie = MovieFunctionality()
         self.theatre = TheatreFunctionality()
         self.seats = SeatFunctionality()
@@ -250,13 +251,13 @@ class MovieBookingSystem:
         # Prompt user to signup or login
         choice = input("Enter a valid input(Signup/Login): \n").title()
         if choice == 'Signup':
-            self.mail_id = self.user.signup()
+            self.mail_id = self.signup()
             if not self.mail_id:
                 print("User already exists.")
                 self.stay_in = False
 
         elif choice == 'Login':
-            self.mail_id = self.user.login()
+            self.mail_id = self.login()
             if not self.mail_id:
                 print('Invalid mail id or password.')
                 self.stay_in = False
@@ -301,7 +302,7 @@ class MovieBookingSystem:
             print("Invalid show id.")
             return
 
-        selected_seats = self.seats.select_seats(selected_theatre, selected_show_time)
+        selected_seats = self.seats.select_seats(selected_theatre,selected_movie, selected_show_time)
         if not selected_seats:
             print("Invalid seat selection.")
             return
@@ -349,3 +350,4 @@ if __name__ == '__main__':
     booking_system = MovieBookingSystem()
     booking_system.signup_or_login()
     booking_system.run()
+
